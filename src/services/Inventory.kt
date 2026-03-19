@@ -26,4 +26,8 @@ object Inventory {
         }
         return sb.toString()
     }
+    
+    fun findProductByCode(code: String): Product? {
+        return products.find { it.productCode == code }
+    }
 }

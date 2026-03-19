@@ -1,6 +1,7 @@
 import services.Inventory
 import java.io.FileWriter
 import java.io.IOException
+import models.ShoppingCart
 
 // Función para loguear errores en un archivo
 fun logError(message: String) {
@@ -15,7 +16,7 @@ fun logError(message: String) {
 
 fun main() {
     var mantenerMenu = true // Controla el loop del menú
-
+    val cart = ShoppingCart()
     while (mantenerMenu) {
         println("\n===  Sistema  de  Carrito  de  Compras  en  Consola  ===")
         println(String.format("%-40s  %-20s", "  1.  Ver  lista  de  productos  disponibles  ", "  "))
@@ -44,10 +45,36 @@ fun main() {
                         println(productsList)
                     }
                 }
-                2 -> println("añadir al carrito")
+                2 -> {
+                    println(Inventory.displayProducts())
+
+                    print("Ingrese código del producto: ")
+                    val code = readLine()?.trim()
+
+                    print("Ingrese cantidad: ")
+                    val quantity = readLine()?.toIntOrNull()
+
+                    if (code == null || quantity == null) {
+                        println("Entrada inválida")
+                        return@when
+                    }
+
+                    val product = Inventory.findProductByCode(code)
+
+                    if (product == null) {
+                        println("Producto no encontrado")
+                    } else if (!product.isAvailable(quantity)) {
+                        println("No hay suficiente stock")
+                    } else {
+                        cart.addProduct(product, quantity)
+                        println("Producto agregado al carrito ")
+                    }
+                }
                 3 -> println("editar Carrito")
                 4 -> println("remover del carrito")
-                5 -> println("ver al carrito")
+                5 -> {
+                    cart.showCart()
+                }
                 6 -> println("confirmar compra")
                 7 -> mantenerMenu = false
                 else -> println("Opción inválida. Elige entre 1 y 7.")
