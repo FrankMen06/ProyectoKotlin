@@ -56,7 +56,7 @@ fun main() {
 
                     if (code == null || quantity == null) {
                         println("Entrada inválida")
-                        return@when
+                        return
                     }
 
                     val product = Inventory.findProductByCode(code)
