@@ -1,4 +1,4 @@
-package src.models
+package models
 
 //Para captura de datos básicos del inventario, con validación de disponibilidad y un código único para identificación
 class Product(val productCode: String, val name: String, val price: Double, var availableQuantity: Int) {

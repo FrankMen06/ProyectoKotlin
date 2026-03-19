@@ -1,7 +1,6 @@
-package src.models
-
-import src.models.Product
-import src.models.CartItem
+package models
+import models.CartItem
+import models.Product
 
 // Gestionar el carrito de compras, usando una lista de CartItem (agregar, eliminar y visualizar items)
 class ShoppingCart {
@@ -9,38 +8,27 @@ class ShoppingCart {
 
     // Agrega un ítem al carrito, validando cantidad y disponibilidad
     fun addItem(product: Product, quantity: Int): Boolean {
-        if (quantity <= 0) return false
-
-        if (!product.reduceStock(quantity)) {
-            return false
+        if (quantity <= 0) return false // Valida que la cantidad sea positiva
+        if (product.isAvailable(quantity)) {
+            val existing = items.find { it.product.productCode == product.productCode } // Busca por código
+            if (existing != null) {
+                existing.quantity += quantity // Incrementa si existe
+            } else {
+                items.add(CartItem(product, quantity)) // Agrega nuevo si no existe
+            }
+            return true
         }
-
-        val existing = items.find { it.product.productCode == product.productCode }
-
-        if (existing != null) {
-            existing.quantity += quantity
-        } else {
-            items.add(CartItem(product, quantity))
-        }
-
-        return true
+        return false
     }
-
 
     // Elimina un ítem del carrito por código de producto
     fun removeItem(productCode: String): Boolean {
         val index = items.indexOfFirst { it.product.productCode == productCode }
-
         return if (index != -1) {
-            val item = items[index]
-
-            item.product.increaseStock(item.quantity)
-
-            items.removeAt(index)
+            items.removeAt(index) // Elimina por índice
             true
         } else false
     }
-
     // Calcula el total general del carrito sumando todos los totalPrice
     fun getTotal(): Double = items.sumOf { it.totalPrice() }
 
@@ -62,10 +50,6 @@ class ShoppingCart {
 
     // Limpia todos los ítems del carrito para caso de reiniciar el carrito despues de realizar una compra
     fun clear() {
-        items.forEach { item ->
-            item.product.increaseStock(item.quantity)
-        }
         items.clear()
     }
-
 }

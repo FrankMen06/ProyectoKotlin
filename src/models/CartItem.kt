@@ -1,4 +1,5 @@
-package src.models
+package models
+import models.Product
 
 
 // Sirve para validar cuántos de un producto se han agregado

@@ -1,6 +1,6 @@
-package src.services
+package services
 
-import src.models.Product
+import models.Product
 
 //gestionar el inventario global de la lista de productos
 object Inventory {
