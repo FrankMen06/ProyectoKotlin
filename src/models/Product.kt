@@ -5,4 +5,15 @@ class Product(val productCode: String, val name: String, val price: Double, var 
     //Método para verificar si hay suficiente stock para una cantidad dada
 
     fun isAvailable(quantity: Int): Boolean = availableQuantity >= quantity
+    fun reduceStock(quantity: Int): Boolean {
+        return if (isAvailable(quantity)) {
+            availableQuantity -= quantity
+            true
+        } else {
+            false
+        }
+    }
+    fun increaseStock(quantity: Int) {
+        availableQuantity += quantity
+    }
 }

@@ -2,6 +2,7 @@ package services
 
 import models.Product
 
+//gestionar el inventario global de la lista de productos
 object Inventory {
     private val products: MutableList<Product> = mutableListOf( // Lista inicial de 10 productos con códigos únicos
         Product("P001", "Laptop Dell", 800.00, 5),
@@ -16,6 +17,18 @@ object Inventory {
         Product("P010", "Cargador USB-C", 15.00, 20)
     )
 
+    fun getProducts(): List<Product> = products.toList()
+
+    // Busca un producto por código
+    fun findProduct(productCode: String): Product? = products.find { it.productCode == productCode }
+
+    // Actualiza la cantidad disponible de un producto por código
+    fun updateQuantity(productCode: String, quantity: Int) {
+        val product = findProduct(productCode)
+        product?.availableQuantity = maxOf(0, product.availableQuantity - quantity)
+    }
+
+    // Genera una representación de los productos disponibles con anchos fijos
     fun displayProducts(): String {
         if (products.isEmpty()) return "Inventario vacío"
         val sb = StringBuilder()
@@ -25,9 +38,5 @@ object Inventory {
             sb.appendLine(String.format("%-6s  %-40s  %-10.2f  %-10d", product.productCode, product.name, product.price, product.availableQuantity))
         }
         return sb.toString()
-    }
-    
-    fun findProductByCode(code: String): Product? {
-        return products.find { it.productCode == code }
     }
 }
