@@ -1,7 +1,10 @@
-import services.Inventory
+package src
+
+import src.models.ShoppingCart
+import src.services.Inventory
+//import src.services.Inventory
 import java.io.FileWriter
 import java.io.IOException
-
 // Función para loguear errores en un archivo
 fun logError(message: String) {
     try {
@@ -12,8 +15,81 @@ fun logError(message: String) {
         println("Error al loguear: ${e.message}")
     }
 }
-
+fun removeFromCart(cart: ShoppingCart) {
+    if (cart.getItems().isEmpty()) {
+        println("Carrito vacío, nada que eliminar.")
+        return
+    }
+    println("\n===  Eliminar  Producto  del  Carrito  ===")
+    println(cart.display())
+    val code = src.validateInput(
+        "Ingresa el código del producto a eliminar: ",
+        { validateProductCode(it) },
+        "Código inválido"
+    ) ?: return
+    if (confirmAction("¿Confirmar eliminar el producto con código $code del carrito?")) {
+        if (cart.removeItem(code)) {
+            println("Producto eliminado.")
+        } else {
+            println("Producto con código $code no encontrado.")
+        }
+    } else {
+        println("Acción cancelada.")
+    }
+}
+// Función para pedir confirmación con s/n
+fun confirmAction(prompt: String): Boolean {
+    print("$prompt (s/n): ")
+    val response = readLine()?.trim()?.lowercase()
+    return response == "s"
+}
+// Función para validar cantidades numéricas (enteros positivos)
+fun validateQuantity(input: String): Int? {
+    val qty = input.trim().toIntOrNull()
+    return if (qty != null && qty > 0) qty else null
+}
+// Función para validar códigos de producto (alfanuméricos simples)
+fun validateProductCode(code: String): Boolean {
+    val regex = Regex("^[A-Za-z0-9]+$") // Solo alfanuméricos, sin espacios
+    return code.isNotBlank() && regex.matches(code)
+}
+// Función para validar input con un predicado personalizado
+fun validateInput(prompt: String, validator: (String) -> Boolean, errorMsg: String): String? {
+    print(prompt)
+    val input = readLine()?.trim()
+    return if (input != null && validator(input)) input else {
+        println(errorMsg)
+        src.logError("$errorMsg - Input: $input")
+        null
+    }
+}
+// Función para agregar un producto al carrito con validación y confirmación usando código
+fun addToCart(cart: ShoppingCart) {
+    println("\n===  Agregar  Producto  al  Carrito  ===")
+    println(Inventory.displayProducts())
+    val code = validateInput("Ingresa el código del producto: ", { validateProductCode(it) }, "Código inválido: solo letras y números permitidos") ?: return
+    val product = Inventory.findProduct(code) ?: run {
+        println("Producto con código $code no encontrado.")
+        return
+    }
+    val qtyInput = validateInput("Ingresa la cantidad: ", { it.isNotBlank() }, "Cantidad no puede estar vacía") ?: return
+    val qty = validateQuantity(qtyInput) ?: run {
+        println("Cantidad inválida: debe ser un número entero positivo.")
+        src.logError("Cantidad inválida: $qtyInput")
+        return
+    }
+    if (confirmAction("¿Confirmar agregar $qty unidades del producto con código $code?")) {
+        if (cart.addItem(product, qty)) {
+            println("Producto agregado exitosamente.")
+        } else {
+            println("No se pudo agregar: cantidad no disponible.")
+        }
+    } else {
+        println("Acción cancelada.")
+    }
+}
 fun main() {
+    val cart = ShoppingCart() // Instancia del carrito
     var mantenerMenu = true // Controla el loop del menú
 
     while (mantenerMenu) {
@@ -44,9 +120,9 @@ fun main() {
                         println(productsList)
                     }
                 }
-                2 -> println("añadir al carrito")
+                2 -> src.addToCart(cart);
                 3 -> println("editar Carrito")
-                4 -> println("remover del carrito")
+                4 -> removeFromCart(cart)
                 5 -> println("ver al carrito")
                 6 -> println("confirmar compra")
                 7 -> mantenerMenu = false
