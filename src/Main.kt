@@ -6,7 +6,7 @@ import java.io.IOException
 // Función para loguear errores en un archivo
 fun logError(message: String) {
     try {
-        FileWriter("log/errors.log", true).use { writer ->
+        FileWriter("logs/errors.log", true).use { writer ->
             writer.appendLine("${java.time.LocalDateTime.now()}: $message")
         }
     } catch (e: IOException) {
