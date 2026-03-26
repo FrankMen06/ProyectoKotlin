@@ -1,12 +1,14 @@
+
 import models.ShoppingCart
 import services.Inventory
 import java.io.FileWriter
 import java.io.IOException
 
+
 // Función para loguear errores en un archivo
 fun logError(message: String) {
     try {
-        FileWriter("logs/errors.log", true).use { writer ->
+        FileWriter("log/errors.log", true).use { writer ->
             writer.appendLine("${java.time.LocalDateTime.now()}: $message")
         }
     } catch (e: IOException) {
@@ -123,12 +125,29 @@ fun removeFromCart(cart: ShoppingCart) {
     }
 }
 
+// Función para confirmar la compra y generar factura con tabulaciones fijas
+fun confirmPurchase(cart: ShoppingCart) {
+    if (cart.getItems().isEmpty()) {
+        println("\nCarrito vacío. No hay nada que comprar.")
+        return
+    }
+    println("\n===  Factura  ===")
+    println(cart.display())
+    val taxRate = 0.13 // IVA 13% para El Salvador
+    val subtotal = cart.getTotal()
+    val tax = subtotal * taxRate
+    val totalWithTax = subtotal + tax
+    println(String.format("%-20s  %-20s", "  Subtotal  :", "  $" + String.format("%.2f", subtotal)))
+    println(String.format("%-20s  %-20s", "  Impuestos  (IVA  13%)  :", "  $" + String.format("%.2f", tax)))
+    println(String.format("%-20s  %-20s", "  Total  Final  :", "  $" + String.format("%.2f", totalWithTax)))
+}
 
+// Menu principal
 fun main() {
     val cart = ShoppingCart() // Instancia del carrito
-    var mantenerMenu = true // Controla el loop del menú
+    var continueShopping = true // Controla el loop del menú
 
-    while (mantenerMenu) {
+    while (continueShopping) {
         println("\n===  Sistema  de  Carrito  de  Compras  en  Consola  ===")
         println(String.format("%-40s  %-20s", "  1.  Ver  lista  de  productos  disponibles  ", "  "))
         println(String.format("%-40s  %-20s", "  2.  Agregar  producto  al  carrito  ", "  "))
@@ -156,12 +175,12 @@ fun main() {
                         println(productsList)
                     }
                 }
-                2 -> addToCart(cart);
-                3 -> println("editar Carrito")
+                2 -> addToCart(cart)
+                3 -> editCartItem(cart)
                 4 -> removeFromCart(cart)
-                5 -> println("ver al carrito")
-                6 -> println("confirmar compra")
-                7 -> mantenerMenu = false
+                5 -> println(cart.display())
+                6 -> confirmPurchase(cart)
+                7 -> continueShopping = false
                 else -> println("Opción inválida. Elige entre 1 y 7.")
             }
         } catch (e: Exception) {
@@ -170,5 +189,5 @@ fun main() {
             println("Stack trace: ${e.stackTraceToString()}") // Para depuración
         }
     }
-    println("¡Gracias por preferirnos. Te esperamos pronto! 🛒")
+    println("Gracias por usar el sistema")
 }
