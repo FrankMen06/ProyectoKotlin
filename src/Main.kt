@@ -1,9 +1,20 @@
-
 import models.ShoppingCart
 import services.Inventory
 import java.io.FileWriter
 import java.io.IOException
+import java.util.Properties
+import jakarta.mail.Authenticator
+import jakarta.mail.Message
+import jakarta.mail.PasswordAuthentication
+import jakarta.mail.Session
+import jakarta.mail.Transport
+import jakarta.mail.internet.InternetAddress
+import jakarta.mail.internet.MimeMessage
 
+
+// APP KEY
+const val FROM_EMAIL = "fm920715@gmail.com"
+const val APP_PASSWORD = "wohh tplr xpjw udkt"
 
 // Función para loguear errores en un archivo
 fun logError(message: String) {
@@ -132,31 +143,97 @@ fun confirmPurchase(cart: ShoppingCart) {
         return
     }
 
-    println("\n===  Factura  ===")
-    println(cart.display())
-    val taxRate = 0.13 // IVA 13% para El Salvador
-    val subtotal = cart.getTotal()
-    val tax = subtotal * taxRate
-    val totalWithTax = subtotal + tax
-    println(String.format("%-20s  %-20s", "  Subtotal  :", "  $" + String.format("%.2f", subtotal)))
-    println(String.format("%-20s  %-20s", "  Impuestos  (IVA  13%)  :", "  $" + String.format("%.2f", tax)))
-    println(String.format("%-20s  %-20s", "  Total  Final  :", "  $" + String.format("%.2f", totalWithTax)))
-    if (confirmAction("¿Confirmar compra?")) {
-        cart.getItems().forEach { item ->
-            Inventory.updateQuantity(item.product.productCode, item.quantity)
+    val invoiceText = buildInvoiceText(cart)
+
+    println("\n=== Vista previa de factura ===")
+    println(invoiceText)
+
+    var email: String
+
+    while (true) {
+        val result = validateInput(
+            "Ingresa el correo para enviar la factura: ",
+            { validateEmail(it) },
+            "Correo inválido, intenta de nuevo."
+        )
+
+        if (result != null) {
+            email = result
+            break
         }
+    }
+
+    if (confirmAction("¿Confirmar compra y enviar factura a $email?")) {
+
+        try {
+            sendInvoiceEmail(email, invoiceText)
+            println("Factura enviada a $email")
+        } catch (e: Exception) {
+            logError("Error enviando correo: ${e.message}")
+            println("Error al enviar correo")
+        }
+
+        cart.getItems().forEach {
+            Inventory.updateQuantity(it.product.productCode, it.quantity)
+        }
+
         println("Compra confirmada. Inventario actualizado.")
+
         print("¿Deseas seguir comprando? (s/n): ")
         if (readLine()?.trim()?.lowercase() == "s") {
-            cart.clear() // Reinicia el carrito a cero
-            println("Carrito reiniciado. ¡Puedes continuar comprando!")
+            cart.clear()
         } else {
-            println("Sesión terminada.")
-            System.exit(0) // Sale limpiamente si no continúa
+            println("Sesión finalizada.")
+            System.exit(0)
         }
     } else {
         println("Compra cancelada.")
     }
+}
+fun validateEmail(email: String): Boolean {
+    val regex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")
+    return email.isNotBlank() && regex.matches(email)
+}
+
+fun buildInvoiceText(cart: ShoppingCart): String {
+    val taxRate = 0.13
+    val subtotal = cart.getTotal()
+    val tax = subtotal * taxRate
+    val totalWithTax = subtotal + tax
+
+    val sb = StringBuilder()
+    sb.appendLine("=========== FACTURA ELECTRONICA ===========")
+    sb.appendLine(cart.display())
+    sb.appendLine(String.format("%-20s  $%.2f", "Subtotal:", subtotal))
+    sb.appendLine(String.format("%-20s  $%.2f", "IVA (13%):", tax))
+    sb.appendLine(String.format("%-20s  $%.2f", "Total final:", totalWithTax))
+    sb.appendLine("===========================================")
+
+    return sb.toString()
+}
+
+fun sendInvoiceEmail(toEmail: String, invoiceText: String) {
+    val props = Properties().apply {
+        put("mail.smtp.host", "smtp.gmail.com")
+        put("mail.smtp.port", "587")
+        put("mail.smtp.auth", "true")
+        put("mail.smtp.starttls.enable", "true")
+    }
+
+    val session = Session.getInstance(props, object : Authenticator() {
+        override fun getPasswordAuthentication(): PasswordAuthentication {
+            return PasswordAuthentication(FROM_EMAIL, APP_PASSWORD)
+        }
+    })
+
+    val message = MimeMessage(session).apply {
+        setFrom(InternetAddress(FROM_EMAIL))
+        setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail))
+        subject = "Factura de compra"
+        setText(invoiceText)
+    }
+
+    Transport.send(message)
 }
 
 // Menu principal
