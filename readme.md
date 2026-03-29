@@ -10,3 +10,7 @@ y puesdes descargarla desde el siguiente link: https://download.oracle.com/java/
 
    - Se tiene que descargar directamente la que dice: "jakarta.mail-2.0.4.jar" a través del siguiente link https://repo1.maven.org/maven2/org/eclipse/angus/jakarta.mail/2.0.4/ la cual funciona para el servicio de mail directamente con java
    - Se tiene que descargar directamente el que dice: "jakarta.activation-2.0.1.jar" a través del siguiente link: https://repo1.maven.org/maven2/com/sun/activation/jakarta.activation/2.0.1/ y nos ayudará para entender que tipo de comunicación está enviando
+
+
+Luego de descargarlos en la parte de **"Project Structure"** del IntelliJ deberas irte a la sección de
+**"Libraries"** ahí le darás al **"+"** y agregaras las dos librerias y ya estaría para funcionar
